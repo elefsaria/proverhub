@@ -4,7 +4,7 @@ import CatClicker from "../games/CatClicker";
 import flappyIcon from "../assets/flappy.png";
 import catIcon from "../assets/cat.png";
 import mathIcon from "../assets/math.png";
-import logo from "/logo-energi.png"; // dari public folder
+import logo from "/logo-energi.png"; // public folder
 
 export default function Desktop({ username }) {
   const [activeGame, setActiveGame] = useState(null);
@@ -50,7 +50,6 @@ export default function Desktop({ username }) {
         <div className="dock-icon">
           <img src={catIcon} alt="CatClicker" onClick={() => setActiveGame("cat")} />
         </div>
-        {/* Tambah lebih banyak ikon nanti */}
       </div>
 
       {/* Footer Info */}
