@@ -3,17 +3,14 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './styles.css';
 
-// Pages
 import Login from './pages/Login';
 import Desktop from './pages/Desktop';
-import Leaderboard from './pages/Leaderboard';
-import NFT from './pages/NFT'; // ✅ Pastikan file ini ada
-
-// Components
 import QuickMath from './components/QuickMath';
 import CatClicker from './components/CatClicker';
 import FlappyBird from './components/FlappyBird';
 import MiniMario from './components/MiniMario';
+import Leaderboard from './pages/Leaderboard';
+import NFT from './pages/NFT'; // ✅ Baris penting
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -26,7 +23,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/flappy" element={<FlappyBird />} />
         <Route path="/mario" element={<MiniMario />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route path="/nft" element={<NFT />} /> {/* ✅ Tambahkan ini */}
+        <Route path="/nft" element={<NFT />} /> {/* ✅ Route baru untuk NFT */}
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
