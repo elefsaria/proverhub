@@ -3,6 +3,8 @@ import "../styles.css";
 import CatClicker from "../components/CatClicker";
 import QuickMath from "../components/QuickMath";
 import NFTGenerator from "../components/NFTGenerator";
+import FlappyBird from "../components/FlappyBird";
+import MiniMario from "../components/MiniMario";
 
 export default function Desktop() {
   const [username, setUsername] = useState("");
@@ -52,8 +54,8 @@ export default function Desktop() {
         />
       </div>
 
-      {/* Ikon Game / Menu */}
-      <div className="absolute top-8 left-8 grid grid-cols-2 gap-8 z-10">
+      {/* Ikon desktop */}
+      <div className="absolute top-8 left-8 grid grid-cols-3 gap-8 z-10">
         {/* Cat Clicker */}
         <div
           className="flex flex-col items-center cursor-pointer"
@@ -80,17 +82,71 @@ export default function Desktop() {
           <span className="text-xs mt-1">Quick Math</span>
         </div>
 
+        {/* Dashboard */}
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() =>
+            window.open("https://testnet.succinct.xyz/", "_blank")
+          }
+        >
+          <img
+            src="/logo-energi.png"
+            alt="Dashboard"
+            className="w-12 h-12 hover:scale-110 transition"
+          />
+          <span className="text-xs mt-1">Dashboard</span>
+        </div>
+
         {/* NFT Generator */}
         <div
           className="flex flex-col items-center cursor-pointer"
           onClick={() => setShowNFT(true)}
         >
           <img
-            src="https://cdn-icons-png.flaticon.com/512/9211/9211516.png"
-            alt="NFT Generator"
+            src="https://cdn-icons-png.flaticon.com/512/7657/7657590.png"
+            alt="NFT"
             className="w-12 h-12 hover:scale-110 transition"
           />
           <span className="text-xs mt-1">NFT Generator</span>
+        </div>
+
+        {/* Leaderboard */}
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => window.location.href = "/leaderboard"}
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/1041/1041916.png"
+            alt="Leaderboard"
+            className="w-12 h-12 hover:scale-110 transition"
+          />
+          <span className="text-xs mt-1">Leaderboard</span>
+        </div>
+
+        {/* Flappy Bird */}
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => setActiveGame("flappy")}
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/616/616408.png"
+            alt="Flappy Bird"
+            className="w-12 h-12 hover:scale-110 transition"
+          />
+          <span className="text-xs mt-1">Flappy Bird</span>
+        </div>
+
+        {/* Mini Mario */}
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => setActiveGame("mario")}
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/822/822870.png"
+            alt="Mini Mario"
+            className="w-12 h-12 hover:scale-110 transition"
+          />
+          <span className="text-xs mt-1">Mini Mario</span>
         </div>
 
         {/* Labubu Arts */}
@@ -104,7 +160,7 @@ export default function Desktop() {
           }
         >
           <img
-            src="https://i.pinimg.com/originals/f7/4c/c8/f74cc8e3d7e1a7d22df42941d11c9b08.png"
+            src="/labubu.png"
             alt="Labubu"
             className="w-12 h-12 hover:scale-110 transition rounded-full border-2 border-pink-400"
           />
@@ -112,13 +168,15 @@ export default function Desktop() {
         </div>
       </div>
 
-      {/* Game Popups */}
+      {/* Game modals */}
       {activeGame === "cat" && <CatClicker onClose={() => setActiveGame(null)} />}
       {activeGame === "math" && <QuickMath onClose={() => setActiveGame(null)} />}
+      {activeGame === "flappy" && <FlappyBird onClose={() => setActiveGame(null)} />}
+      {activeGame === "mario" && <MiniMario onClose={() => setActiveGame(null)} />}
       {showNFT && <NFTGenerator onClose={() => setShowNFT(false)} />}
 
       {/* Taskbar */}
-      <div className="absolute bottom-0 left-0 w-full flex items-center justify-center gap-6 py-3 backdrop-blur-md bg-white/10 shadow-inner z-20">
+      <div className="absolute bottom-0 left-0 w-full flex items-center justify-center gap-6 py-3 backdrop-blur-md bg-white/10 shadow-inner">
         <a
           href="https://x.com/succinct"
           target="_blank"
@@ -148,7 +206,7 @@ export default function Desktop() {
         </span>
       </div>
 
-      {/* Animasi klik */}
+      {/* Klik animasi */}
       {clicks.map((click) => (
         <span
           key={click.id}
