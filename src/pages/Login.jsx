@@ -1,20 +1,21 @@
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "../styles.css";
 
 export default function Login() {
-  const navigate = useNavigate();
   const [username, setUsername] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = () => {
     if (username.trim() !== "") {
-      localStorage.setItem("username", username);
+      localStorage.setItem("username", username.trim());
       navigate("/desktop");
     }
   };
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* 🔁 Video background */}
+      {/* 🎬 Background video */}
       <video
         autoPlay
         muted
@@ -25,24 +26,32 @@ export default function Login() {
         Your browser does not support the video tag.
       </video>
 
-      {/* 🎨 Overlay untuk membuat teks lebih terbaca */}
+      {/* 🔊 Background audio */}
+      <audio autoPlay loop>
+        <source src="/login-audio.mp3" type="audio/mp3" />
+        Your browser does not support the audio element.
+      </audio>
+
+      {/* 🌓 Overlay */}
       <div className="absolute inset-0 bg-black/60 z-10" />
 
-      {/* 🌟 Content Login */}
-      <div className="relative z-20 flex flex-col items-center justify-center h-full text-white">
-        <h1 className="text-4xl font-bold mb-6 animate-glow">Welcome to Succinct OS</h1>
+      {/* 👤 Login Form */}
+      <div className="relative z-20 flex flex-col items-center justify-center h-full text-white px-4">
+        <h1 className="text-4xl font-bold mb-6 animate-glow text-center">
+          Welcome to Succinct OS
+        </h1>
 
         <input
           type="text"
-          placeholder="Enter your X/Discord username"
+          placeholder="Enter your username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="px-4 py-2 rounded bg-white text-black mb-4"
+          className="px-4 py-2 rounded-md bg-white/90 text-black w-72 mb-4 focus:outline-none focus:ring-2 focus:ring-pink-400"
         />
 
         <button
           onClick={handleLogin}
-          className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded"
+          className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-md transition shadow-md"
         >
           Enter
         </button>
