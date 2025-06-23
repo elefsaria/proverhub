@@ -1,98 +1,96 @@
-import { useRef, useState } from "react";
+import React, { useState } from "react";
 
 export default function NFTGenerator() {
   const [image, setImage] = useState(null);
-  const canvasRef = useRef();
+  const [generated, setGenerated] = useState(null);
 
-  const handleImageUpload = (e) => {
+  const handleUpload = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => setImage(reader.result);
-    reader.readAsDataURL(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result);
+        setGenerated(null);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const drawNFT = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-
-    const img = new Image();
-    img.src = image;
-
-    img.onload = () => {
-      canvas.width = 512;
-      canvas.height = 512;
-
-      // Background + border
-      ctx.fillStyle = "#ff69b4"; // pink
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Draw uploaded image in center
-      const margin = 20;
-      ctx.drawImage(
-        img,
-        margin,
-        margin,
-        canvas.width - margin * 2,
-        canvas.height - margin * 2 - 40
-      );
-
-      // Text
-      ctx.fillStyle = "white";
-      ctx.font = "bold 28px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("PROVERHUB", canvas.width / 2, canvas.height - 20);
-    };
+  const generateNFT = () => {
+    if (!image) return;
+    setGenerated(image);
   };
 
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.download = "proverhub-nft.png";
-    link.href = canvasRef.current.toDataURL();
-    link.click();
+  const downloadNFT = () => {
+    const a = document.createElement("a");
+    a.href = document.getElementById("nft-image").toDataURL("image/png");
+    a.download = "proverhub-nft.png";
+    a.click();
   };
 
-  const handleShare = () => {
-    const tweetText = encodeURIComponent("Check out my #ProverHub NFT!");
-    const tweetUrl = "https://twitter.com/intent/tweet?text=" + tweetText;
-    window.open(tweetUrl, "_blank");
+  const shareToX = () => {
+    const tweet = encodeURIComponent("I just minted a custom NFT with ProverHub!");
+    window.open(`https://twitter.com/intent/tweet?text=${tweet}`, "_blank");
   };
 
   return (
-    <div className="text-white flex flex-col items-center gap-4 p-6">
-      <h2 className="text-xl font-bold">🎨 NFT Generator</h2>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleImageUpload}
-        className="text-white"
-      />
+    <div className="flex flex-col items-center gap-4">
+      <input type="file" accept="image/*" onChange={handleUpload} />
+      <button
+        onClick={generateNFT}
+        className="bg-pink-500 hover:bg-pink-700 text-white px-4 py-2 rounded"
+      >
+        Generate NFT
+      </button>
 
-      {image && (
-        <>
-          <canvas ref={canvasRef} className="border border-pink-400" />
-          <div className="flex gap-4 mt-2">
+      {generated && (
+        <div className="relative">
+          <canvas
+            id="nft-image"
+            width={300}
+            height={300}
+            style={{ display: "none" }}
+          />
+          <div className="border-4 border-pink-500 p-2 rounded-md relative">
+            <img
+              src={generated}
+              alt="NFT Preview"
+              className="w-72 h-72 object-cover rounded"
+              onLoad={() => {
+                const canvas = document.getElementById("nft-image");
+                const ctx = canvas.getContext("2d");
+                const img = new Image();
+                img.src = generated;
+                img.onload = () => {
+                  ctx.clearRect(0, 0, canvas.width, canvas.height);
+                  ctx.drawImage(img, 0, 0, 300, 300);
+                  ctx.font = "bold 20px sans-serif";
+                  ctx.fillStyle = "#ff69b4";
+                  ctx.textAlign = "center";
+                  ctx.fillText("PROVERHUB", 150, 290);
+                };
+              }}
+            />
+            <div className="absolute bottom-1 left-0 right-0 text-center text-pink-500 font-bold">
+              PROVERHUB
+            </div>
+          </div>
+
+          <div className="mt-4 flex gap-4">
             <button
-              onClick={drawNFT}
-              className="bg-pink-600 px-4 py-2 rounded hover:bg-pink-700"
-            >
-              Generate
-            </button>
-            <button
-              onClick={handleDownload}
-              className="bg-green-600 px-4 py-2 rounded hover:bg-green-700"
+              onClick={downloadNFT}
+              className="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded"
             >
               Download
             </button>
             <button
-              onClick={handleShare}
-              className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+              onClick={shareToX}
+              className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded"
             >
               Share to X
             </button>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
