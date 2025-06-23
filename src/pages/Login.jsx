@@ -1,21 +1,28 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles.css";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const navigate = useNavigate();
+  const audioRef = useRef(null); // Ref untuk kontrol audio
 
   const handleLogin = () => {
     if (username.trim() !== "") {
       localStorage.setItem("username", username.trim());
+
+      // Mainkan audio setelah interaksi
+      if (audioRef.current) {
+        audioRef.current.play().catch((e) => console.warn("Audio autoplay blocked:", e));
+      }
+
       navigate("/desktop");
     }
   };
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* 🎬 Background video */}
+      {/* 🎬 Background Video */}
       <video
         autoPlay
         muted
@@ -26,16 +33,16 @@ export default function Login() {
         Your browser does not support the video tag.
       </video>
 
-      {/* 🔊 Background audio */}
-      <audio autoPlay loop>
+      {/* 🔊 Audio: autoplay dikendalikan oleh interaksi user */}
+      <audio ref={audioRef} loop>
         <source src="/login-audio.mp3" type="audio/mp3" />
         Your browser does not support the audio element.
       </audio>
 
-      {/* 🌓 Overlay */}
+      {/* Overlay */}
       <div className="absolute inset-0 bg-black/60 z-10" />
 
-      {/* 👤 Login Form */}
+      {/* UI Login */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full text-white px-4">
         <h1 className="text-4xl font-bold mb-6 animate-glow text-center">
           Welcome to Succinct OS
