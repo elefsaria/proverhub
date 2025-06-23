@@ -40,10 +40,8 @@ export default function Desktop() {
   }, []);
 
   return (
-    <div
-      className="h-screen w-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] relative overflow-hidden text-white font-mono cursor-pink"
-    >
-      {/* Logo di tengah */}
+    <div className="h-screen w-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] relative overflow-hidden text-white font-mono cursor-pink">
+      {/* Logo Tengah */}
       <div className="flex items-center justify-center h-full pointer-events-none">
         <img
           src="/logo-energi.png"
@@ -52,7 +50,7 @@ export default function Desktop() {
         />
       </div>
 
-      {/* Ikon Game: Rapi pakai grid */}
+      {/* Ikon Game & Dashboard */}
       <div className="absolute top-8 left-8 grid grid-cols-2 gap-8">
         {/* Cat Clicker */}
         <div
@@ -79,6 +77,21 @@ export default function Desktop() {
           />
           <span className="text-xs mt-1">Quick Math</span>
         </div>
+
+        {/* Dashboard */}
+        <a
+          href="https://testnet.succinct.xyz/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col items-center cursor-pointer"
+        >
+          <img
+            src="/logo-energi.png"
+            alt="Dashboard"
+            className="w-12 h-12 hover:scale-110 transition"
+          />
+          <span className="text-xs mt-1">Dashboard</span>
+        </a>
       </div>
 
       {/* Game popups */}
