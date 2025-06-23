@@ -41,7 +41,7 @@ export default function Desktop() {
 
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] relative overflow-hidden text-white font-mono cursor-pink">
-      {/* Logo Tengah */}
+      {/* Logo di tengah */}
       <div className="flex items-center justify-center h-full pointer-events-none">
         <img
           src="/logo-energi.png"
@@ -50,7 +50,7 @@ export default function Desktop() {
         />
       </div>
 
-      {/* Ikon Game & Dashboard */}
+      {/* Ikon desktop */}
       <div className="absolute top-8 left-8 grid grid-cols-2 gap-8">
         {/* Cat Clicker */}
         <div
@@ -78,12 +78,36 @@ export default function Desktop() {
           <span className="text-xs mt-1">Quick Math</span>
         </div>
 
-        {/* Dashboard */}
-        <a
-          href="https://testnet.succinct.xyz/"
-          target="_blank"
-          rel="noopener noreferrer"
+        {/* NFT Generator */}
+        <div
           className="flex flex-col items-center cursor-pointer"
+          onClick={() => window.open("/nft", "_blank")}
+        >
+          <img
+            src="/logo-energi.png"
+            alt="NFT"
+            className="w-12 h-12 hover:scale-110 transition"
+          />
+          <span className="text-xs mt-1">NFT Generator</span>
+        </div>
+
+        {/* Leaderboard */}
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => window.open("/leaderboard", "_blank")}
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png"
+            alt="Leaderboard"
+            className="w-12 h-12 hover:scale-110 transition"
+          />
+          <span className="text-xs mt-1">Leaderboard</span>
+        </div>
+
+        {/* Dashboard */}
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => window.open("https://testnet.succinct.xyz/", "_blank")}
         >
           <img
             src="/logo-energi.png"
@@ -91,7 +115,7 @@ export default function Desktop() {
             className="w-12 h-12 hover:scale-110 transition"
           />
           <span className="text-xs mt-1">Dashboard</span>
-        </a>
+        </div>
       </div>
 
       {/* Game popups */}
@@ -99,7 +123,7 @@ export default function Desktop() {
       {activeGame === "math" && <QuickMath onClose={() => setActiveGame(null)} />}
 
       {/* Taskbar */}
-      <div className="absolute bottom-0 left-0 w-full flex items-center justify-center gap-6 py-3 backdrop-blur-md bg-white/10 shadow-inner">
+      <div className="absolute bottom-0 left-0 w-full flex items-center justify-center gap-6 py-3 backdrop-blur-md bg-white/10 shadow-inner rounded-t-xl">
         <a
           href="https://x.com/succinct"
           target="_blank"
@@ -129,7 +153,7 @@ export default function Desktop() {
         </span>
       </div>
 
-      {/* Animasi klik */}
+      {/* Klik animasi */}
       {clicks.map((click) => (
         <span
           key={click.id}
