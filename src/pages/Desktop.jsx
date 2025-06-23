@@ -1,133 +1,44 @@
-import { useEffect, useState } from "react";
-import "../styles.css";
-import CatClicker from "../components/CatClicker";
-import QuickMath from "../components/QuickMath";
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
-export default function Desktop() {
-  const [username, setUsername] = useState("");
-  const [glow, setGlow] = useState(true);
-  const [activeGame, setActiveGame] = useState(null);
-  const [clicks, setClicks] = useState([]);
+const Desktop = () => {
+  const navigate = useNavigate();
+  const username = localStorage.getItem('username');
 
   useEffect(() => {
-    const stored = localStorage.getItem("username");
-    if (!stored) {
-      window.location.href = "/";
-    } else {
-      setUsername(stored);
-    }
-
-    const timer = setTimeout(() => setGlow(false), 5000);
-    return () => clearTimeout(timer);
+    if (!username) navigate('/');
   }, []);
 
-  useEffect(() => {
-    const handleClick = (e) => {
-      const newClick = {
-        id: Date.now(),
-        x: e.clientX,
-        y: e.clientY,
-      };
-      setClicks((prev) => [...prev, newClick]);
-
-      setTimeout(() => {
-        setClicks((prev) => prev.filter((c) => c.id !== newClick.id));
-      }, 500);
-    };
-
-    window.addEventListener("click", handleClick);
-    return () => window.removeEventListener("click", handleClick);
-  }, []);
+  const icons = [
+    { name: 'QuickMath', path: '/quickmath', icon: '➕' },
+    { name: 'CatClicker', path: '/catclicker', icon: '😺' },
+    { name: 'Flappy', path: '/flappy', icon: '🏁' },
+    { name: 'Mario', path: '/mario', icon: '⏱️' },
+    { name: 'Leaderboard', path: '/leaderboard', icon: '🏆' },
+  ];
 
   return (
-    <div
-      className="h-screen w-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] relative overflow-hidden text-white font-mono cursor-pink"
-    >
-      {/* Logo di tengah */}
-      <div className="flex items-center justify-center h-full pointer-events-none">
-        <img
-          src="/logo-energi.png"
-          alt="Logo Energi"
-          className={`w-52 h-52 ${glow ? "animate-glow" : ""}`}
-        />
+    <div className="desktop">
+      <div className="desktop-icons">
+        {icons.map((app, idx) => (
+          <div key={idx} className="icon" onClick={() => navigate(app.path)}>
+            <div className="icon-img">{app.icon}</div>
+            <span>{app.name}</span>
+          </div>
+        ))}
       </div>
-
-      {/* Ikon Game: Rapi pakai grid */}
-      <div className="absolute top-8 left-8 grid grid-cols-2 gap-8">
-        {/* Cat Clicker */}
-        <div
-          className="flex flex-col items-center cursor-pointer"
-          onClick={() => setActiveGame("cat")}
-        >
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/2203/2203187.png"
-            alt="Cat Clicker"
-            className="w-12 h-12 hover:scale-110 transition"
-          />
-          <span className="text-xs mt-1">Cat Clicker</span>
-        </div>
-
-        {/* Quick Math */}
-        <div
-          className="flex flex-col items-center cursor-pointer"
-          onClick={() => setActiveGame("math")}
-        >
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/1157/1157109.png"
-            alt="Quick Math"
-            className="w-12 h-12 hover:scale-110 transition"
-          />
-          <span className="text-xs mt-1">Quick Math</span>
-        </div>
+      <img
+        src="/logo-energi.png"
+        alt="logo"
+        className="logo-energy"
+      />
+      <div className="dock">
+        <span>👤 {username}</span>
+        <a href="https://x.com/succinct" target="_blank">🧑‍💼 Profile X</a>
+        <a href="https://discord.com/invite/succinct" target="_blank">💬 Join Discord</a>
       </div>
-
-      {/* Game popups */}
-      {activeGame === "cat" && <CatClicker onClose={() => setActiveGame(null)} />}
-      {activeGame === "math" && <QuickMath onClose={() => setActiveGame(null)} />}
-
-      {/* Taskbar */}
-      <div className="absolute bottom-0 left-0 w-full flex items-center justify-center gap-6 py-3 backdrop-blur-md bg-white/10 shadow-inner">
-        <a
-          href="https://x.com/succinct"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:scale-110 transition"
-        >
-          <img
-            src="https://abs.twimg.com/icons/apple-touch-icon-192x192.png"
-            alt="X"
-            className="w-7 h-7"
-          />
-        </a>
-        <a
-          href="https://discord.gg/succinct"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:scale-110 transition"
-        >
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/3670/3670157.png"
-            alt="Discord"
-            className="w-7 h-7"
-          />
-        </a>
-        <span className="text-white text-sm bg-black/40 px-4 py-1 rounded-full">
-          👤 {username}
-        </span>
-      </div>
-
-      {/* Animasi klik */}
-      {clicks.map((click) => (
-        <span
-          key={click.id}
-          className="absolute pointer-events-none w-6 h-6 bg-pink-400 rounded-full animate-ping"
-          style={{
-            left: click.x,
-            top: click.y,
-            transform: "translate(-50%, -50%)",
-          }}
-        />
-      ))}
     </div>
   );
-}
+};
+
+export default Desktop;
