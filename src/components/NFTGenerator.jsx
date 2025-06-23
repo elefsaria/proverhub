@@ -1,5 +1,5 @@
 import { useState } from "react";
-import NFT from "./NFT";
+import NFT from "../pages/NFT";
 
 export default function NFTGenerator() {
   const [selectedFile, setSelectedFile] = useState(null);
