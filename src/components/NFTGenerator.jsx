@@ -1,70 +1,69 @@
 import { useState } from "react";
 import NFT from "../pages/NFT";
 
-export default function NFTGenerator() {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+export default function NFTGenerator({ onClose }) {
+  const [image, setImage] = useState(null);
   const [showNFT, setShowNFT] = useState(false);
 
-  const handleFileChange = (e) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    setSelectedFile(file);
-    setPreview(URL.createObjectURL(file));
-    setShowNFT(false);
-  };
-
-  const handleGenerate = () => {
-    if (selectedFile) {
-      setShowNFT(true);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result);
+        setShowNFT(false); // Reset dulu
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleClose = () => {
-    setSelectedFile(null);
-    setPreview(null);
-    setShowNFT(false);
+  const handleGenerate = () => {
+    if (image) setShowNFT(true);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center">
-      <div className="bg-white rounded-xl p-6 text-center w-[90%] max-w-md overflow-auto max-h-screen relative">
-        {/* Close Button */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4 overflow-auto">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full relative">
         <button
-          onClick={handleClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-black text-lg font-bold"
+          onClick={onClose}
+          className="absolute top-2 right-3 text-gray-600 hover:text-black text-xl"
         >
-          ✕
+          ×
         </button>
+        <h2 className="text-center text-pink-600 font-bold text-lg mb-4">
+          NFT Generator
+        </h2>
 
-        <h2 className="text-xl font-semibold text-pink-500 mb-4">NFT Generator</h2>
-
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="mb-4"
-        />
-
-        {preview && (
-          <div className="overflow-y-auto max-h-[60vh] mb-4">
-            <img
-              src={preview}
-              alt="Preview"
-              className="rounded-lg mx-auto object-contain"
+        {!image && (
+          <div className="text-center">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="mx-auto mb-4"
             />
           </div>
         )}
 
-        {!showNFT && preview && (
-          <button
-            onClick={handleGenerate}
-            className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded shadow"
-          >
-            Generate NFT
-          </button>
+        {image && !showNFT && (
+          <div className="flex flex-col items-center gap-3">
+            <img
+              src={image}
+              alt="Preview"
+              className="max-h-[300px] w-auto border rounded mb-3"
+            />
+            <button
+              onClick={handleGenerate}
+              className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded"
+            >
+              Generate NFT
+            </button>
+          </div>
         )}
 
-        {showNFT && <NFT image={preview} />}
+        {showNFT && image && (
+          <NFT image={image} />
+        )}
       </div>
     </div>
   );
