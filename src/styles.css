@@ -20,7 +20,7 @@
   animation: glow 2s ease-in-out infinite;
 }
 
-/* 💥 Ping animation */
+/* 💥 Optional custom ping animation (can use Tailwind's animate-ping too) */
 @keyframes pop {
   0% {
     transform: scale(0.6);
@@ -33,77 +33,4 @@
 }
 .animate-pop {
   animation: pop 0.5s ease-out;
-}
-
-/* 🖼️ NFT Preview Styling */
-.nft-container {
-  max-width: 90vw;
-  max-height: 70vh;
-  overflow: hidden;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.nft-preview {
-  width: auto;
-  height: auto;
-  max-height: 100%;
-  max-width: 100%;
-  border: 10px solid hotpink;
-  box-shadow: 0 0 25px #ff69b4;
-  border-radius: 12px;
-  object-fit: contain;
-  background: #000;
-}
-
-/* 🔥 Fire text effect */
-.fire-text {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #ff69b4;
-  text-shadow:
-    0 0 5px #ff69b4,
-    0 0 10px #ff69b4,
-    0 0 20px #ff69b4,
-    0 0 40px hotpink,
-    0 0 80px deeppink;
-  animation: flicker 1.2s infinite alternate;
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* 🔥 Flicker animation */
-@keyframes flicker {
-  0% {
-    opacity: 1;
-    text-shadow:
-      0 0 5px #ff69b4,
-      0 0 10px #ff69b4,
-      0 0 20px #ff69b4,
-      0 0 40px hotpink;
-  }
-  100% {
-    opacity: 0.85;
-    text-shadow:
-      0 0 10px #ff69b4,
-      0 0 20px #ff69b4,
-      0 0 30px deeppink,
-      0 0 50px hotpink;
-  }
-}
-
-/* 📱 Responsiveness for tall images */
-@media (max-height: 700px) {
-  .nft-container {
-    max-height: 60vh;
-  }
-
-  .fire-text {
-    font-size: 1.5rem;
-    bottom: 8px;
-  }
 }
