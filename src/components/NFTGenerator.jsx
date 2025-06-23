@@ -1,69 +1,108 @@
-import { useState } from "react";
-import NFT from "../pages/NFT";
+import { useRef, useState } from "react";
 
 export default function NFTGenerator({ onClose }) {
-  const [image, setImage] = useState(null);
-  const [showNFT, setShowNFT] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [generatedUrl, setGeneratedUrl] = useState(null);
+  const canvasRef = useRef();
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result);
-        setShowNFT(false); // Reset dulu
-      };
+      reader.onloadend = () => setImageSrc(reader.result);
       reader.readAsDataURL(file);
     }
   };
 
-  const handleGenerate = () => {
-    if (image) setShowNFT(true);
+  const generateNFT = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw border (pink)
+      ctx.fillStyle = "#ec4899"; // Tailwind pink-500
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw image with margin (border thickness)
+      const border = 20;
+      ctx.drawImage(img, border, border, canvas.width - 2 * border, canvas.height - 2 * border);
+
+      // Add text "PROVERHUB"
+      ctx.fillStyle = "#fff";
+      ctx.font = `${canvas.width / 10}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText("PROVERHUB", canvas.width / 2, canvas.height - 30);
+
+      const dataURL = canvas.toDataURL();
+      setGeneratedUrl(dataURL);
+    };
+
+    img.src = imageSrc;
+  };
+
+  const downloadImage = () => {
+    const link = document.createElement("a");
+    link.download = "proverhub-nft.png";
+    link.href = generatedUrl;
+    link.click();
+  };
+
+  const shareToX = () => {
+    const text = encodeURIComponent("Saya baru saja membuat NFT dengan PROVERHUB!");
+    const url = encodeURIComponent(window.location.href); // bisa diganti dengan url project-mu
+    const shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+    window.open(shareUrl, "_blank");
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4 overflow-auto">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full relative">
+    <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-[400px] relative text-black">
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-gray-600 hover:text-black text-xl"
+          className="absolute top-2 right-3 text-lg font-bold"
         >
-          ×
+          ✖
         </button>
-        <h2 className="text-center text-pink-600 font-bold text-lg mb-4">
-          NFT Generator
-        </h2>
+        <h2 className="text-xl font-bold text-center mb-4 text-pink-600">NFT Generator</h2>
 
-        {!image && (
-          <div className="text-center">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="mx-auto mb-4"
-            />
-          </div>
+        <input type="file" accept="image/*" onChange={handleImageUpload} className="mb-3" />
+
+        {imageSrc && !generatedUrl && (
+          <button
+            onClick={generateNFT}
+            className="w-full bg-pink-500 text-white py-2 rounded hover:bg-pink-600 mb-4"
+          >
+            🎨 Generate NFT
+          </button>
         )}
 
-        {image && !showNFT && (
-          <div className="flex flex-col items-center gap-3">
-            <img
-              src={image}
-              alt="Preview"
-              className="max-h-[300px] w-auto border rounded mb-3"
-            />
+        {generatedUrl && (
+          <>
+            <img src={generatedUrl} alt="NFT Result" className="mb-3 rounded border-4 border-pink-400" />
             <button
-              onClick={handleGenerate}
-              className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded"
+              onClick={downloadImage}
+              className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 mb-2"
             >
-              Generate NFT
+              ⬇️ Download
             </button>
-          </div>
+            <button
+              onClick={shareToX}
+              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+            >
+              🔗 Share to X
+            </button>
+          </>
         )}
 
-        {showNFT && image && (
-          <NFT image={image} />
-        )}
+        {/* Canvas hidden for processing */}
+        <canvas ref={canvasRef} style={{ display: "none" }} />
       </div>
     </div>
   );
