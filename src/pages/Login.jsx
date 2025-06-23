@@ -5,15 +5,17 @@ import "../styles.css";
 export default function Login() {
   const [username, setUsername] = useState("");
   const navigate = useNavigate();
-  const audioRef = useRef(null); // Ref untuk kontrol audio
+  const audioRef = useRef(null);
 
   const handleLogin = () => {
     if (username.trim() !== "") {
       localStorage.setItem("username", username.trim());
 
-      // Mainkan audio setelah interaksi
+      // Mainkan audio saat tombol diklik (setelah interaksi user)
       if (audioRef.current) {
-        audioRef.current.play().catch((e) => console.warn("Audio autoplay blocked:", e));
+        audioRef.current.play().catch((e) => {
+          console.warn("Autoplay blocked. Playing audio on interaction.");
+        });
       }
 
       navigate("/desktop");
@@ -33,16 +35,15 @@ export default function Login() {
         Your browser does not support the video tag.
       </video>
 
-      {/* 🔊 Audio: autoplay dikendalikan oleh interaksi user */}
-      <audio ref={audioRef} loop>
+      {/* 🔊 Audio (diputar setelah interaksi) */}
+      <audio ref={audioRef} preload="auto">
         <source src="/login-audio.mp3" type="audio/mp3" />
-        Your browser does not support the audio element.
       </audio>
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/60 z-10" />
 
-      {/* UI Login */}
+      {/* Konten Login */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full text-white px-4">
         <h1 className="text-4xl font-bold mb-6 animate-glow text-center">
           Welcome to Succinct OS
