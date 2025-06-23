@@ -5,10 +5,10 @@ import './styles.css';
 
 import Login from './pages/Login';
 import Desktop from './pages/Desktop';
-import QuickMath from './games/QuickMath';
-import CatClicker from './games/CatClicker';
-import FlappyBird from './games/FlappyBird';
-import MiniMario from './games/MiniMario';
+import QuickMath from './components/QuickMath';
+import CatClicker from './components/CatClicker';
+import FlappyBird from './components/FlappyBird';
+import MiniMario from './components/MiniMario';
 import Leaderboard from './pages/Leaderboard';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
