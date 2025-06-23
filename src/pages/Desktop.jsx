@@ -9,6 +9,7 @@ export default function Desktop() {
   const [glow, setGlow] = useState(true);
   const [activeGame, setActiveGame] = useState(null);
   const [clicks, setClicks] = useState([]);
+  const [showNFT, setShowNFT] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("username");
@@ -30,6 +31,7 @@ export default function Desktop() {
         y: e.clientY,
       };
       setClicks((prev) => [...prev, newClick]);
+
       setTimeout(() => {
         setClicks((prev) => prev.filter((c) => c.id !== newClick.id));
       }, 500);
@@ -50,46 +52,103 @@ export default function Desktop() {
         />
       </div>
 
-      {/* Ikon Grid */}
+      {/* Ikon Game / Menu */}
       <div className="absolute top-8 left-8 grid grid-cols-2 gap-8 z-10">
-        {/* Quick Math */}
-        <div onClick={() => setActiveGame("math")} className="flex flex-col items-center cursor-pointer">
-          <img src="https://cdn-icons-png.flaticon.com/512/1157/1157109.png" className="w-12 h-12 hover:scale-110 transition" />
-          <span className="text-xs mt-1">QuickMath</span>
+        {/* Cat Clicker */}
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => setActiveGame("cat")}
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/2203/2203187.png"
+            alt="Cat Clicker"
+            className="w-12 h-12 hover:scale-110 transition"
+          />
+          <span className="text-xs mt-1">Cat Clicker</span>
         </div>
 
-        {/* Cat Clicker */}
-        <div onClick={() => setActiveGame("cat")} className="flex flex-col items-center cursor-pointer">
-          <img src="https://cdn-icons-png.flaticon.com/512/2203/2203187.png" className="w-12 h-12 hover:scale-110 transition" />
-          <span className="text-xs mt-1">CatClicker</span>
+        {/* Quick Math */}
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => setActiveGame("math")}
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/1157/1157109.png"
+            alt="Quick Math"
+            className="w-12 h-12 hover:scale-110 transition"
+          />
+          <span className="text-xs mt-1">Quick Math</span>
         </div>
 
         {/* NFT Generator */}
-        <div onClick={() => setActiveGame("nft")} className="flex flex-col items-center cursor-pointer">
-          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" className="w-12 h-12 hover:scale-110 transition" />
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => setShowNFT(true)}
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/9211/9211516.png"
+            alt="NFT Generator"
+            className="w-12 h-12 hover:scale-110 transition"
+          />
           <span className="text-xs mt-1">NFT Generator</span>
+        </div>
+
+        {/* Labubu Arts */}
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() =>
+            window.open(
+              "https://succinctlabs.notion.site/Zk-Labubu-Arts-219e020fb42f80db811de6dd15dbacc4",
+              "_blank"
+            )
+          }
+        >
+          <img
+            src="https://i.pinimg.com/originals/f7/4c/c8/f74cc8e3d7e1a7d22df42941d11c9b08.png"
+            alt="Labubu"
+            className="w-12 h-12 hover:scale-110 transition rounded-full border-2 border-pink-400"
+          />
+          <span className="text-xs mt-1">Labubu Arts</span>
         </div>
       </div>
 
-      {/* Game / NFT Modal */}
-      {activeGame === "math" && <QuickMath onClose={() => setActiveGame(null)} />}
+      {/* Game Popups */}
       {activeGame === "cat" && <CatClicker onClose={() => setActiveGame(null)} />}
-      {activeGame === "nft" && <NFTGenerator onClose={() => setActiveGame(null)} />}
+      {activeGame === "math" && <QuickMath onClose={() => setActiveGame(null)} />}
+      {showNFT && <NFTGenerator onClose={() => setShowNFT(false)} />}
 
       {/* Taskbar */}
-      <div className="absolute bottom-0 left-0 w-full flex items-center justify-center gap-6 py-3 backdrop-blur-md bg-white/10 shadow-inner z-10">
-        <a href="https://x.com/succinct" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition">
-          <img src="https://abs.twimg.com/icons/apple-touch-icon-192x192.png" alt="X" className="w-7 h-7" />
+      <div className="absolute bottom-0 left-0 w-full flex items-center justify-center gap-6 py-3 backdrop-blur-md bg-white/10 shadow-inner z-20">
+        <a
+          href="https://x.com/succinct"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:scale-110 transition"
+        >
+          <img
+            src="https://abs.twimg.com/icons/apple-touch-icon-192x192.png"
+            alt="X"
+            className="w-7 h-7"
+          />
         </a>
-        <a href="https://discord.gg/succinct" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition">
-          <img src="https://cdn-icons-png.flaticon.com/512/3670/3670157.png" alt="Discord" className="w-7 h-7" />
+        <a
+          href="https://discord.gg/succinct"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:scale-110 transition"
+        >
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/3670/3670157.png"
+            alt="Discord"
+            className="w-7 h-7"
+          />
         </a>
         <span className="text-white text-sm bg-black/40 px-4 py-1 rounded-full">
           👤 {username}
         </span>
       </div>
 
-      {/* Klik animasi */}
+      {/* Animasi klik */}
       {clicks.map((click) => (
         <span
           key={click.id}
