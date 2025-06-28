@@ -3,8 +3,7 @@ import "../styles.css";
 import CatClicker from "../components/CatClicker";
 import QuickMath from "../components/QuickMath";
 import NFTGenerator from "../components/NFTGenerator";
-import FlappyBird from "../components/FlappyBird";
-import MiniMario from "../components/MiniMario";
+import ProverMatchBlast from "../components/ProverMatchBlast";
 
 export default function Desktop() {
   const [username, setUsername] = useState("");
@@ -110,45 +109,6 @@ export default function Desktop() {
           <span className="text-xs mt-1">NFT Generator</span>
         </div>
 
-        {/* Leaderboard */}
-        <div
-          className="flex flex-col items-center cursor-pointer"
-          onClick={() => window.location.href = "/leaderboard"}
-        >
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/1041/1041916.png"
-            alt="Leaderboard"
-            className="w-12 h-12 hover:scale-110 transition"
-          />
-          <span className="text-xs mt-1">Leaderboard</span>
-        </div>
-
-        {/* Flappy Bird */}
-        <div
-          className="flex flex-col items-center cursor-pointer"
-          onClick={() => setActiveGame("flappy")}
-        >
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/616/616408.png"
-            alt="Flappy Bird"
-            className="w-12 h-12 hover:scale-110 transition"
-          />
-          <span className="text-xs mt-1">Flappy Bird</span>
-        </div>
-
-        {/* Mini Mario */}
-        <div
-          className="flex flex-col items-center cursor-pointer"
-          onClick={() => setActiveGame("mario")}
-        >
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/822/822870.png"
-            alt="Mini Mario"
-            className="w-12 h-12 hover:scale-110 transition"
-          />
-          <span className="text-xs mt-1">Mini Mario</span>
-        </div>
-
         {/* Labubu Arts */}
         <div
           className="flex flex-col items-center cursor-pointer"
@@ -166,13 +126,27 @@ export default function Desktop() {
           />
           <span className="text-xs mt-1">Labubu Arts</span>
         </div>
+
+        {/* Prover Match Blast */}
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={() => setActiveGame("matchblast")}
+        >
+          <img
+            src="/assets/match-blast/avatar1.png"
+            alt="Match Blast"
+            className="w-12 h-12 hover:scale-110 transition rounded"
+          />
+          <span className="text-xs mt-1">Match Blast</span>
+        </div>
       </div>
 
       {/* Game modals */}
       {activeGame === "cat" && <CatClicker onClose={() => setActiveGame(null)} />}
       {activeGame === "math" && <QuickMath onClose={() => setActiveGame(null)} />}
-      {activeGame === "flappy" && <FlappyBird onClose={() => setActiveGame(null)} />}
-      {activeGame === "mario" && <MiniMario onClose={() => setActiveGame(null)} />}
+      {activeGame === "matchblast" && (
+        <ProverMatchBlast onClose={() => setActiveGame(null)} />
+      )}
       {showNFT && <NFTGenerator onClose={() => setShowNFT(false)} />}
 
       {/* Taskbar */}
