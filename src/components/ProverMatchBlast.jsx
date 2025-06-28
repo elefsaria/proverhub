@@ -230,7 +230,7 @@ function ProverMatchBlast({ onClose }) {
   }
 
   function shareToX() {
-    const message = `Saya mendapatkan skor total ${score} di game Prover Match Blast! Mainkan juga di`;
+    const message = `I scored ${score} points in Prover Match Blast! Can you beat my score?\n\nGprove @SuccinctLabs`;
     const url = `https://x.com/intent/tweet?text=${encodeURIComponent(
       message
     )}&url=https://proverhub.vercel.app`;
@@ -265,12 +265,12 @@ function ProverMatchBlast({ onClose }) {
       ) : (
         <div className="text-center text-white mt-10">
           <h2 className="text-2xl text-pink-400 font-bold mb-2">Game Over</h2>
-          <p className="mb-2">Score Akhir: {score}</p>
+          <p className="mb-2">Final Score: {score}</p>
           <button
             onClick={shareToX}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-4"
           >
-            🚀 Share ke X
+            🚀 Share on X
           </button>
         </div>
       )}
