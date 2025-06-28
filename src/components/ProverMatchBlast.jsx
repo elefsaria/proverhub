@@ -1,85 +1,133 @@
 import { useEffect, useRef, useState } from "react";
 
-const tileSize = 64; // lebih besar & landscape-friendly
+const tileSize = 64;
 const cols = 8;
-const rows = 6;
+const rows = 8;
 const types = ["avatar1", "avatar2", "avatar3", "avatar4", "avatar5"];
+
+const images = {};
+types.forEach((type) => {
+  const img = new Image();
+  img.src = `/assets/match-blast/${type}.png`;
+  images[type] = img;
+});
 
 function getRandomType() {
   return types[Math.floor(Math.random() * types.length)];
 }
 
 function createBoard() {
-  return Array.from({ length: rows }, () =>
-    Array.from({ length: cols }, getRandomType)
-  );
+  const board = [];
+  for (let y = 0; y < rows; y++) {
+    const row = [];
+    for (let x = 0; x < cols; x++) {
+      row.push(getRandomType());
+    }
+    board.push(row);
+  }
+  return board;
 }
 
-function cloneBoard(board) {
-  return board.map((row) => [...row]);
-}
-
-export default function ProverMatchBlast({ onClose }) {
-  const canvasRef = useRef(null);
-  const [board, setBoard] = useState(createBoard());
+function ProverMatchBlast({ onClose }) {
+  const canvasRef = useRef();
+  const [board, setBoard] = useState(createBoard);
+  const [selected, setSelected] = useState(null);
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
-  const [selected, setSelected] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
+    drawBoard();
+  }, [board, selected]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
-    canvas.width = tileSize * cols;
-    canvas.height = tileSize * rows;
+    canvas.addEventListener("mousedown", handleClickOrTouch);
+    canvas.addEventListener("touchstart", handleClickOrTouch);
+    return () => {
+      canvas.removeEventListener("mousedown", handleClickOrTouch);
+      canvas.removeEventListener("touchstart", handleClickOrTouch);
+    };
+  });
+
+  function drawBoard() {
+    const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          const type = board[y][x];
-          const img = new Image();
-          img.src = `/assets/match-blast/${type}.png`;
-          img.onload = () => {
-            ctx.drawImage(img, x * tileSize, y * tileSize, tileSize, tileSize);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // garis grid
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-            ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
-
-            // highlight selected
-            if (selected?.x === x && selected?.y === y) {
-              ctx.strokeStyle = "white";
-              ctx.lineWidth = 3;
-              ctx.strokeRect(x * tileSize + 2, y * tileSize + 2, tileSize - 4, tileSize - 4);
-            }
-          };
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const type = board[y][x];
+        if (type && images[type]) {
+          ctx.drawImage(
+            images[type],
+            x * tileSize,
+            y * tileSize,
+            tileSize,
+            tileSize
+          );
         }
+        // Garis pembatas
+        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
       }
-    };
+    }
 
-    draw();
-  }, [board, selected]);
+    if (selected) {
+      ctx.strokeStyle = "magenta";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(
+        selected.x * tileSize,
+        selected.y * tileSize,
+        tileSize,
+        tileSize
+      );
+    }
+  }
 
   function getTileAtPosition(x, y) {
     const rect = canvasRef.current.getBoundingClientRect();
-    const tileX = Math.floor((x - rect.left) / tileSize);
-    const tileY = Math.floor((y - rect.top) / tileSize);
-    return { x: tileX, y: tileY };
-  }
-
-  function swapTiles(pos1, pos2) {
-    const newBoard = cloneBoard(board);
-    const temp = newBoard[pos1.y][pos1.x];
-    newBoard[pos1.y][pos1.x] = newBoard[pos2.y][pos2.x];
-    newBoard[pos2.y][pos2.x] = temp;
-    return newBoard;
+    const localX = x - rect.left;
+    const localY = y - rect.top;
+    return {
+      x: Math.floor(localX / tileSize),
+      y: Math.floor(localY / tileSize),
+    };
   }
 
   function isValidSwap(pos1, pos2) {
     const dx = Math.abs(pos1.x - pos2.x);
     const dy = Math.abs(pos1.y - pos2.y);
-    return dx + dy === 1;
+    return (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
+  }
+
+  function cloneBoard(b) {
+    return b.map((row) => [...row]);
+  }
+
+  function swapTiles(pos1, pos2, customBoard = null) {
+    const tempBoard = customBoard ? cloneBoard(customBoard) : cloneBoard(board);
+    const temp = tempBoard[pos1.y][pos1.x];
+    tempBoard[pos1.y][pos1.x] = tempBoard[pos2.y][pos2.x];
+    tempBoard[pos2.y][pos2.x] = temp;
+    return tempBoard;
+  }
+
+  function positionsToKey(pos) {
+    return `${pos.x},${pos.y}`;
+  }
+
+  function removeDuplicates(matches) {
+    const seen = new Set();
+    return matches.filter((m) => {
+      const key = positionsToKey(m);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }
 
   function findMatches(b) {
@@ -87,20 +135,44 @@ export default function ProverMatchBlast({ onClose }) {
 
     // Horizontal
     for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols - 2; x++) {
-        const t = b[y][x];
-        if (t && t === b[y][x + 1] && t === b[y][x + 2]) {
-          matches.push({ x, y }, { x: x + 1, y }, { x: x + 2, y });
+      let matchLength = 1;
+      for (let x = 1; x < cols; x++) {
+        if (b[y][x] === b[y][x - 1]) {
+          matchLength++;
+        } else {
+          if (matchLength >= 3) {
+            for (let i = 0; i < matchLength; i++) {
+              matches.push({ x: x - 1 - i, y });
+            }
+          }
+          matchLength = 1;
+        }
+      }
+      if (matchLength >= 3) {
+        for (let i = 0; i < matchLength; i++) {
+          matches.push({ x: cols - 1 - i, y });
         }
       }
     }
 
     // Vertical
     for (let x = 0; x < cols; x++) {
-      for (let y = 0; y < rows - 2; y++) {
-        const t = b[y][x];
-        if (t && t === b[y + 1][x] && t === b[y + 2][x]) {
-          matches.push({ x, y }, { x, y: y + 1 }, { x, y: y + 2 });
+      let matchLength = 1;
+      for (let y = 1; y < rows; y++) {
+        if (b[y][x] === b[y - 1][x]) {
+          matchLength++;
+        } else {
+          if (matchLength >= 3) {
+            for (let i = 0; i < matchLength; i++) {
+              matches.push({ x, y: y - 1 - i });
+            }
+          }
+          matchLength = 1;
+        }
+      }
+      if (matchLength >= 3) {
+        for (let i = 0; i < matchLength; i++) {
+          matches.push({ x, y: rows - 1 - i });
         }
       }
     }
@@ -108,21 +180,22 @@ export default function ProverMatchBlast({ onClose }) {
     return matches;
   }
 
-  function removeMatchesAndDrop() {
-    const matches = findMatches(board);
+  function removeMatchesAndDrop(currentBoard, matchList = null) {
+    let matches = matchList ?? findMatches(currentBoard);
+    matches = removeDuplicates(matches);
+
     if (matches.length === 0) {
       setIsProcessing(false);
       return;
     }
 
-    const newBoard = cloneBoard(board);
+    const newBoard = cloneBoard(currentBoard);
     matches.forEach(({ x, y }) => {
       newBoard[y][x] = null;
     });
 
     for (let x = 0; x < cols; x++) {
-      let col = newBoard.map((row) => row[x]);
-      col = col.filter((val) => val !== null);
+      let col = newBoard.map((row) => row[x]).filter((cell) => cell !== null);
       while (col.length < rows) {
         col.unshift(getRandomType());
       }
@@ -133,11 +206,9 @@ export default function ProverMatchBlast({ onClose }) {
 
     setBoard(newBoard);
     setScore((s) => s + matches.length * 10);
-    if (score + matches.length * 10 > level * 100) {
-      setLevel((l) => l + 1);
-    }
+    setLevel((l) => Math.floor((score + matches.length * 10) / 100) + 1);
 
-    setTimeout(removeMatchesAndDrop, 300);
+    setTimeout(() => removeMatchesAndDrop(newBoard), 300);
   }
 
   function handleClickOrTouch(e) {
@@ -157,52 +228,42 @@ export default function ProverMatchBlast({ onClose }) {
 
       if (isValidSwap(selected, pos)) {
         const swapped = swapTiles(selected, pos);
-        setBoard(swapped);
-        setSelected(null);
-        setIsProcessing(true);
-        setTimeout(removeMatchesAndDrop, 300);
+        const matches = findMatches(swapped);
+
+        if (matches.length > 0) {
+          setBoard(swapped);
+          setSelected(null);
+          setIsProcessing(true);
+          setTimeout(() => removeMatchesAndDrop(swapped, matches), 300);
+        } else {
+          setSelected(null); // Tidak valid, tidak diganti
+        }
       } else {
         setSelected(pos);
       }
     }
   }
 
-  function handleRestart() {
-    setBoard(createBoard());
-    setScore(0);
-    setLevel(1);
-    setSelected(null);
-  }
-
-  function shareToX() {
-    const text = encodeURIComponent(
-      `🎮 Aku main Prover Match Blast dan dapat skor ${score}! Coba juga yuk di ProverHub!`
-    );
-    const url = encodeURIComponent("https://proverhub.vercel.app");
-    const shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
-    window.open(shareUrl, "_blank");
-  }
-
   return (
-    <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-white p-4 rounded-lg w-[600px] max-w-[95vw] text-black text-center relative">
-        <button onClick={onClose} className="absolute right-3 top-2 text-pink-500 text-xl font-bold">✖</button>
-        <h1 className="text-2xl font-bold mb-2 text-pink-500">Prover Match Blast</h1>
-        <div className="flex justify-between px-4 text-sm font-bold mb-2">
-          <span>Score: {score}</span>
-          <span>Level: {level}</span>
-        </div>
-        <canvas
-          ref={canvasRef}
-          onClick={handleClickOrTouch}
-          onTouchStart={handleClickOrTouch}
-          className="rounded bg-pink-100 mx-auto border border-pink-400"
-        />
-        <div className="flex gap-2 justify-center mt-4 flex-wrap">
-          <button onClick={shareToX} className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600">🔗 Share ke X</button>
-          <button onClick={handleRestart} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">🔁 Ulangi</button>
-        </div>
+    <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-50">
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={onClose}
+          className="text-white text-lg bg-pink-500 hover:bg-pink-600 px-4 py-1 rounded"
+        >
+          ✖ Close
+        </button>
       </div>
+      <h2 className="text-2xl text-white font-bold mb-2">Prover Match Blast</h2>
+      <p className="text-white mb-4">Score: {score} | Level: {level}</p>
+      <canvas
+        ref={canvasRef}
+        width={cols * tileSize}
+        height={rows * tileSize}
+        className="border-2 border-pink-500 rounded"
+      />
     </div>
   );
 }
+
+export default ProverMatchBlast;
