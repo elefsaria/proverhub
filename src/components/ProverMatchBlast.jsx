@@ -9,7 +9,7 @@ const images = [
   "/assets/match-blast/avatar4.png",
   "/assets/match-blast/avatar5.png",
 ];
-const levelTimes = [120, 90, 60]; // seconds for levels 1–3
+const levelTimes = [120, 90, 60]; // seconds for levels 1, 2, 3
 
 export default function ProverMatchBlast({ onClose }) {
   const canvasRef = useRef(null);
@@ -22,7 +22,6 @@ export default function ProverMatchBlast({ onClose }) {
 
   const audioMatch = new Audio("/assets/sfx/match.mp3");
 
-  // initialize board
   useEffect(() => {
     const newBoard = Array(gridSize)
       .fill(null)
@@ -34,7 +33,6 @@ export default function ProverMatchBlast({ onClose }) {
     setBoard(newBoard);
   }, []);
 
-  // handle timer
   useEffect(() => {
     if (gameOver) return;
     const timer = setInterval(() => {
@@ -64,10 +62,10 @@ export default function ProverMatchBlast({ onClose }) {
         const img = new Image();
         img.src = images[val];
         img.onload = () => {
-          ctx.fillStyle = "#222";
+          ctx.fillStyle = "#333";
           ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
           ctx.drawImage(img, x * tileSize, y * tileSize, tileSize, tileSize);
-          ctx.strokeStyle = "#555";
+          ctx.strokeStyle = "#fff";
           ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
         };
       });
@@ -109,9 +107,7 @@ export default function ProverMatchBlast({ onClose }) {
           newBoard[y][x] === newBoard[y][x + 1] &&
           newBoard[y][x] === newBoard[y][x + 2]
         ) {
-          matched.push({ x, y });
-          matched.push({ x: x + 1, y });
-          matched.push({ x: x + 2, y });
+          matched.push({ x, y }, { x: x + 1, y }, { x: x + 2, y });
         }
       }
     }
@@ -121,9 +117,7 @@ export default function ProverMatchBlast({ onClose }) {
           newBoard[y][x] === newBoard[y + 1][x] &&
           newBoard[y][x] === newBoard[y + 2][x]
         ) {
-          matched.push({ x, y });
-          matched.push({ x, y: y + 1 });
-          matched.push({ x, y: y + 2 });
+          matched.push({ x, y }, { x, y: y + 1 }, { x, y: y + 2 });
         }
       }
     }
