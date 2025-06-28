@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 const tileSize = 64;
 const types = ["avatar1", "avatar2", "avatar3", "avatar4", "avatar5"];
-const totalDuration = 120; // 2 menit
+const totalDuration = 120;
 
 const levelSettings = {
   1: { cols: 8, rows: 6 },
@@ -64,22 +64,23 @@ function ProverMatchBlast({ onClose }) {
   }, []);
 
   useEffect(() => {
+    const newLevel = score > 1000 ? 2 : 1;
+    if (newLevel !== level) {
+      setLevel(newLevel);
+      setBoard(createBoard(newLevel));
+    }
+  }, [score]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     canvas.addEventListener("mousedown", handleClickOrTouch);
     canvas.addEventListener("touchstart", handleClickOrTouch);
     return () => {
       canvas.removeEventListener("mousedown", handleClickOrTouch);
       canvas.removeEventListener("touchstart", handleClickOrTouch);
     };
-  }, [handleClickOrTouch]);
-
-  useEffect(() => {
-    const newLevel = score >= 150 ? 2 : 1;
-    if (newLevel !== level) {
-      setLevel(newLevel);
-      setBoard(createBoard(newLevel));
-    }
-  }, [score]);
+  });
 
   function drawBoard() {
     const canvas = canvasRef.current;
@@ -140,7 +141,6 @@ function ProverMatchBlast({ onClose }) {
   function findMatches(b) {
     const matches = [];
 
-    // Horizontal
     for (let y = 0; y < rows; y++) {
       let match = [0];
       for (let x = 1; x < cols; x++) {
@@ -153,7 +153,6 @@ function ProverMatchBlast({ onClose }) {
       if (match.length >= 3) match.forEach((m) => matches.push({ x: m, y }));
     }
 
-    // Vertical
     for (let x = 0; x < cols; x++) {
       let match = [0];
       for (let y = 1; y < rows; y++) {
@@ -226,9 +225,7 @@ function ProverMatchBlast({ onClose }) {
   }
 
   function formatTime(s) {
-    const m = Math.floor(s / 60)
-      .toString()
-      .padStart(2, "0");
+    const m = Math.floor(s / 60).toString().padStart(2, "0");
     return `${m}:${(s % 60).toString().padStart(2, "0")}`;
   }
 
