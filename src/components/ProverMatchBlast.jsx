@@ -2,13 +2,12 @@ import { useEffect, useRef, useState } from "react";
 
 const tileSize = 64;
 const cols = 8;
-const rows = 8;
-const types = ["avatar1", "avatar2", "avatar3", "avatar4", "avatar5"];
-const levelDurations = {
-  1: 180,
-  2: 150,
-  3: 120,
+const levelConfigs = {
+  1: { rows: 6, duration: 150 },
+  2: { rows: 8, duration: 150 },
 };
+
+const types = ["avatar1", "avatar2", "avatar3", "avatar4", "avatar5"];
 
 const images = {};
 types.forEach((type) => {
@@ -21,7 +20,7 @@ function getRandomType() {
   return types[Math.floor(Math.random() * types.length)];
 }
 
-function createBoard() {
+function createBoard(rows) {
   const board = [];
   for (let y = 0; y < rows; y++) {
     const row = [];
@@ -35,21 +34,19 @@ function createBoard() {
 
 function ProverMatchBlast({ onClose }) {
   const canvasRef = useRef();
-  const [board, setBoard] = useState(createBoard);
+  const [level, setLevel] = useState(1);
+  const [rows, setRows] = useState(levelConfigs[1].rows);
+  const [board, setBoard] = useState(() => createBoard(levelConfigs[1].rows));
   const [selected, setSelected] = useState(null);
   const [score, setScore] = useState(0);
-  const [level, setLevel] = useState(1);
+  const [timeLeft, setTimeLeft] = useState(levelConfigs[1].duration);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(levelDurations[1]);
   const [gameOver, setGameOver] = useState(false);
 
-  useEffect(() => {
-    drawBoard();
-  }, [board, selected]);
+  useEffect(() => drawBoard(), [board, selected]);
 
   useEffect(() => {
     if (gameOver) return;
-
     const timer = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
@@ -60,7 +57,6 @@ function ProverMatchBlast({ onClose }) {
         return t - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, [level, gameOver]);
 
@@ -72,12 +68,11 @@ function ProverMatchBlast({ onClose }) {
       canvas.removeEventListener("mousedown", handleClickOrTouch);
       canvas.removeEventListener("touchstart", handleClickOrTouch);
     };
-  });
+  }, [selected, isProcessing, gameOver, board]);
 
   function drawBoard() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#1a1a1a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -86,15 +81,9 @@ function ProverMatchBlast({ onClose }) {
       for (let x = 0; x < cols; x++) {
         const type = board[y][x];
         if (type && images[type]) {
-          ctx.drawImage(
-            images[type],
-            x * tileSize,
-            y * tileSize,
-            tileSize,
-            tileSize
-          );
+          ctx.drawImage(images[type], x * tileSize, y * tileSize, tileSize, tileSize);
         }
-        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        ctx.strokeStyle = "#fff2";
         ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
       }
     }
@@ -102,22 +91,15 @@ function ProverMatchBlast({ onClose }) {
     if (selected) {
       ctx.strokeStyle = "magenta";
       ctx.lineWidth = 3;
-      ctx.strokeRect(
-        selected.x * tileSize,
-        selected.y * tileSize,
-        tileSize,
-        tileSize
-      );
+      ctx.strokeRect(selected.x * tileSize, selected.y * tileSize, tileSize, tileSize);
     }
   }
 
   function getTileAtPosition(x, y) {
     const rect = canvasRef.current.getBoundingClientRect();
-    const localX = x - rect.left;
-    const localY = y - rect.top;
     return {
-      x: Math.floor(localX / tileSize),
-      y: Math.floor(localY / tileSize),
+      x: Math.floor((x - rect.left) / tileSize),
+      y: Math.floor((y - rect.top) / tileSize),
     };
   }
 
@@ -141,16 +123,13 @@ function ProverMatchBlast({ onClose }) {
 
   function findMatches(b) {
     const matches = [];
-
     for (let y = 0; y < rows; y++) {
       let match = [0];
       for (let x = 1; x < cols; x++) {
         if (b[y][x] === b[y][x - 1]) {
           match.push(x);
         } else {
-          if (match.length >= 3) {
-            match.forEach((m) => matches.push({ x: m, y }));
-          }
+          if (match.length >= 3) match.forEach((m) => matches.push({ x: m, y }));
           match = [x];
         }
       }
@@ -163,20 +142,17 @@ function ProverMatchBlast({ onClose }) {
         if (b[y][x] === b[y - 1][x]) {
           match.push(y);
         } else {
-          if (match.length >= 3) {
-            match.forEach((m) => matches.push({ x, y: m }));
-          }
+          if (match.length >= 3) match.forEach((m) => matches.push({ x, y: m }));
           match = [y];
         }
       }
       if (match.length >= 3) match.forEach((m) => matches.push({ x, y: m }));
     }
-
     return matches;
   }
 
   function removeMatchesAndDrop(currentBoard, matchList = null) {
-    let matches = matchList ?? findMatches(currentBoard);
+    const matches = matchList ?? findMatches(currentBoard);
     if (matches.length === 0) {
       setIsProcessing(false);
       return;
@@ -189,26 +165,25 @@ function ProverMatchBlast({ onClose }) {
 
     for (let x = 0; x < cols; x++) {
       let col = newBoard.map((row) => row[x]).filter((cell) => cell !== null);
-      while (col.length < rows) {
-        col.unshift(getRandomType());
-      }
-      for (let y = 0; y < rows; y++) {
-        newBoard[y][x] = col[y];
-      }
+      while (col.length < rows) col.unshift(getRandomType());
+      for (let y = 0; y < rows; y++) newBoard[y][x] = col[y];
     }
 
     const gained = matches.length * 10;
     const newScore = score + gained;
-    const newLevel = Math.min(3, Math.floor(newScore / 100) + 1);
+    setScore(newScore);
 
-    if (newLevel !== level) {
+    if (newScore >= 100 && level === 1) {
+      const newLevel = 2;
       setLevel(newLevel);
-      setTimeLeft(levelDurations[newLevel]);
+      setRows(levelConfigs[newLevel].rows);
+      setTimeLeft(levelConfigs[newLevel].duration);
+      setBoard(createBoard(levelConfigs[newLevel].rows));
+      setSelected(null);
+      return;
     }
 
     setBoard(newBoard);
-    setScore(newScore);
-
     setTimeout(() => removeMatchesAndDrop(newBoard), 300);
   }
 
@@ -246,9 +221,7 @@ function ProverMatchBlast({ onClose }) {
   }
 
   function formatTime(seconds) {
-    const m = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
     const s = (seconds % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   }
