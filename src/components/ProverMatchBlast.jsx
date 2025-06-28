@@ -22,6 +22,7 @@ export default function ProverMatchBlast({ onClose }) {
 
   const audioMatch = new Audio("/assets/sfx/match.mp3");
 
+  // initialize board
   useEffect(() => {
     const newBoard = Array(gridSize)
       .fill(null)
@@ -33,6 +34,7 @@ export default function ProverMatchBlast({ onClose }) {
     setBoard(newBoard);
   }, []);
 
+  // handle timer
   useEffect(() => {
     if (gameOver) return;
     const timer = setInterval(() => {
@@ -107,7 +109,9 @@ export default function ProverMatchBlast({ onClose }) {
           newBoard[y][x] === newBoard[y][x + 1] &&
           newBoard[y][x] === newBoard[y][x + 2]
         ) {
-          matched.push({ x, y }, { x: x + 1, y }, { x: x + 2, y });
+          matched.push({ x, y });
+          matched.push({ x: x + 1, y });
+          matched.push({ x: x + 2, y });
         }
       }
     }
@@ -117,7 +121,9 @@ export default function ProverMatchBlast({ onClose }) {
           newBoard[y][x] === newBoard[y + 1][x] &&
           newBoard[y][x] === newBoard[y + 2][x]
         ) {
-          matched.push({ x, y }, { x, y: y + 1 }, { x, y: y + 2 });
+          matched.push({ x, y });
+          matched.push({ x, y: y + 1 });
+          matched.push({ x, y: y + 2 });
         }
       }
     }
@@ -194,7 +200,7 @@ export default function ProverMatchBlast({ onClose }) {
 
   return (
     <div className="absolute inset-0 bg-black/90 z-50 flex justify-center items-center">
-      <div className="bg-white p-4 rounded-lg text-center relative">
+      <div className="bg-white p-4 rounded-lg text-center">
         <h1 className="text-2xl font-bold text-pink-500 mb-2">
           Prover Match Blast
         </h1>
