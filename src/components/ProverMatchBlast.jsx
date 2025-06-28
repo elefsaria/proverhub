@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 
 const tileSize = 64;
 const types = ["avatar1", "avatar2", "avatar3", "avatar4", "avatar5"];
+const totalDuration = 120; // 2 menit
+
 const levelSettings = {
-  1: { cols: 8, rows: 6, time: 150 },
-  2: { cols: 8, rows: 8, time: 150 },
+  1: { cols: 8, rows: 6 },
+  2: { cols: 8, rows: 8 },
 };
 
 const images = {};
@@ -33,14 +35,13 @@ function createBoard(level) {
 
 function ProverMatchBlast({ onClose }) {
   const canvasRef = useRef();
+  const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [board, setBoard] = useState(() => createBoard(1));
   const [selected, setSelected] = useState(null);
-  const [score, setScore] = useState(0);
-  const [scoreL1, setScoreL1] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(levelSettings[1].time);
-  const [showEndScreen, setShowEndScreen] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(totalDuration);
+  const [gameOver, setGameOver] = useState(false);
 
   const { cols, rows } = levelSettings[level];
 
@@ -49,21 +50,18 @@ function ProverMatchBlast({ onClose }) {
   }, [board, selected]);
 
   useEffect(() => {
-    if (showEndScreen) return;
-
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleLevelEnd();
+          setGameOver(true);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
-  }, [level, showEndScreen]);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -73,27 +71,19 @@ function ProverMatchBlast({ onClose }) {
       canvas.removeEventListener("mousedown", handleClickOrTouch);
       canvas.removeEventListener("touchstart", handleClickOrTouch);
     };
-  });
+  }, [handleClickOrTouch]);
 
-  function handleLevelEnd() {
-    if (level === 1) {
-      setScoreL1(score);
+  useEffect(() => {
+    const newLevel = score >= 150 ? 2 : 1;
+    if (newLevel !== level) {
+      setLevel(newLevel);
+      setBoard(createBoard(newLevel));
     }
-    setShowEndScreen(true);
-  }
-
-  function startNextLevel() {
-    setLevel(2);
-    setBoard(createBoard(2));
-    setTimeLeft(levelSettings[2].time);
-    setShowEndScreen(false);
-  }
+  }, [score]);
 
   function drawBoard() {
     const canvas = canvasRef.current;
-    if (!canvas) return;
     const ctx = canvas.getContext("2d");
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#1a1a1a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -104,7 +94,7 @@ function ProverMatchBlast({ onClose }) {
         if (type && images[type]) {
           ctx.drawImage(images[type], x * tileSize, y * tileSize, tileSize, tileSize);
         }
-        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        ctx.strokeStyle = "rgba(255,255,255,0.2)";
         ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
       }
     }
@@ -112,7 +102,12 @@ function ProverMatchBlast({ onClose }) {
     if (selected) {
       ctx.strokeStyle = "magenta";
       ctx.lineWidth = 3;
-      ctx.strokeRect(selected.x * tileSize, selected.y * tileSize, tileSize, tileSize);
+      ctx.strokeRect(
+        selected.x * tileSize,
+        selected.y * tileSize,
+        tileSize,
+        tileSize
+      );
     }
   }
 
@@ -200,7 +195,7 @@ function ProverMatchBlast({ onClose }) {
   }
 
   function handleClickOrTouch(e) {
-    if (isProcessing || showEndScreen) return;
+    if (isProcessing || gameOver) return;
     const isTouch = e.type.includes("touch");
     const pos = isTouch
       ? getTileAtPosition(e.touches[0].clientX, e.touches[0].clientY)
@@ -238,11 +233,7 @@ function ProverMatchBlast({ onClose }) {
   }
 
   function shareToX() {
-    const message =
-      level === 2
-        ? `Saya mendapat skor ${scoreL1 + score} di Prover Match Blast (Level 1: ${scoreL1}, Level 2: ${score})`
-        : `Saya mendapat skor ${score} di Level 1 Prover Match Blast!`;
-
+    const message = `Saya mendapatkan skor total ${score} di game Prover Match Blast! Mainkan juga di`;
     const url = `https://x.com/intent/tweet?text=${encodeURIComponent(
       message
     )}&url=https://proverhub.vercel.app`;
@@ -261,7 +252,7 @@ function ProverMatchBlast({ onClose }) {
         </button>
       </div>
 
-      {!showEndScreen ? (
+      {!gameOver ? (
         <>
           <h2 className="text-2xl text-pink-400 font-bold mb-2">Prover Match Blast</h2>
           <p className="text-pink-400 mb-2">
@@ -276,33 +267,14 @@ function ProverMatchBlast({ onClose }) {
         </>
       ) : (
         <div className="text-center text-white mt-10">
-          <h2 className="text-2xl text-pink-400 font-bold mb-2">
-            {level === 1 ? "Ronde 1 Selesai" : "Game Over"}
-          </h2>
-          <p className="mb-2">Score {level === 1 ? score : `${scoreL1} + ${score} = ${scoreL1 + score}`}</p>
-          {level === 1 ? (
-            <div className="space-y-2 mt-4">
-              <button
-                onClick={startNextLevel}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
-              >
-                ▶️ Lanjut Ronde 2
-              </button>
-              <button
-                onClick={shareToX}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-              >
-                🚀 Share ke X
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={shareToX}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-4"
-            >
-              🚀 Share ke X
-            </button>
-          )}
+          <h2 className="text-2xl text-pink-400 font-bold mb-2">Game Over</h2>
+          <p className="mb-2">Score Akhir: {score}</p>
+          <button
+            onClick={shareToX}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-4"
+          >
+            🚀 Share ke X
+          </button>
         </div>
       )}
     </div>
