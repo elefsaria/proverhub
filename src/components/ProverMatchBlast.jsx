@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-const tileSize = 48;
-const boardSize = 8;
+const tileSize = 64; // lebih besar & landscape-friendly
+const cols = 8;
+const rows = 6;
 const types = ["avatar1", "avatar2", "avatar3", "avatar4", "avatar5"];
 
 function getRandomType() {
@@ -9,8 +10,8 @@ function getRandomType() {
 }
 
 function createBoard() {
-  return Array.from({ length: boardSize }, () =>
-    Array.from({ length: boardSize }, getRandomType)
+  return Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, getRandomType)
   );
 }
 
@@ -28,23 +29,29 @@ export default function ProverMatchBlast({ onClose }) {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    canvas.width = tileSize * boardSize;
-    canvas.height = tileSize * boardSize;
+    canvas.width = tileSize * cols;
+    canvas.height = tileSize * rows;
     const ctx = canvas.getContext("2d");
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let y = 0; y < boardSize; y++) {
-        for (let x = 0; x < boardSize; x++) {
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
           const type = board[y][x];
           const img = new Image();
           img.src = `/assets/match-blast/${type}.png`;
           img.onload = () => {
             ctx.drawImage(img, x * tileSize, y * tileSize, tileSize, tileSize);
+
+            // garis grid
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
+
+            // highlight selected
             if (selected?.x === x && selected?.y === y) {
               ctx.strokeStyle = "white";
               ctx.lineWidth = 3;
-              ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
+              ctx.strokeRect(x * tileSize + 2, y * tileSize + 2, tileSize - 4, tileSize - 4);
             }
           };
         }
@@ -78,19 +85,21 @@ export default function ProverMatchBlast({ onClose }) {
   function findMatches(b) {
     const matches = [];
 
-    for (let y = 0; y < boardSize; y++) {
-      for (let x = 0; x < boardSize - 2; x++) {
+    // Horizontal
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols - 2; x++) {
         const t = b[y][x];
-        if (t === b[y][x + 1] && t === b[y][x + 2]) {
+        if (t && t === b[y][x + 1] && t === b[y][x + 2]) {
           matches.push({ x, y }, { x: x + 1, y }, { x: x + 2, y });
         }
       }
     }
 
-    for (let x = 0; x < boardSize; x++) {
-      for (let y = 0; y < boardSize - 2; y++) {
+    // Vertical
+    for (let x = 0; x < cols; x++) {
+      for (let y = 0; y < rows - 2; y++) {
         const t = b[y][x];
-        if (t === b[y + 1][x] && t === b[y + 2][x]) {
+        if (t && t === b[y + 1][x] && t === b[y + 2][x]) {
           matches.push({ x, y }, { x, y: y + 1 }, { x, y: y + 2 });
         }
       }
@@ -111,13 +120,13 @@ export default function ProverMatchBlast({ onClose }) {
       newBoard[y][x] = null;
     });
 
-    for (let x = 0; x < boardSize; x++) {
+    for (let x = 0; x < cols; x++) {
       let col = newBoard.map((row) => row[x]);
       col = col.filter((val) => val !== null);
-      while (col.length < boardSize) {
+      while (col.length < rows) {
         col.unshift(getRandomType());
       }
-      for (let y = 0; y < boardSize; y++) {
+      for (let y = 0; y < rows; y++) {
         newBoard[y][x] = col[y];
       }
     }
@@ -133,7 +142,6 @@ export default function ProverMatchBlast({ onClose }) {
 
   function handleClickOrTouch(e) {
     if (isProcessing) return;
-
     const isTouch = e.type.startsWith("touch");
     const pos = isTouch
       ? getTileAtPosition(e.touches[0].clientX, e.touches[0].clientY)
@@ -142,10 +150,7 @@ export default function ProverMatchBlast({ onClose }) {
     if (!selected) {
       setSelected(pos);
     } else {
-      if (
-        pos.x === selected.x &&
-        pos.y === selected.y
-      ) {
+      if (pos.x === selected.x && pos.y === selected.y) {
         setSelected(null);
         return;
       }
@@ -180,7 +185,7 @@ export default function ProverMatchBlast({ onClose }) {
 
   return (
     <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-white p-4 rounded-lg w-[420px] max-w-[90vw] text-black text-center relative">
+      <div className="bg-white p-4 rounded-lg w-[600px] max-w-[95vw] text-black text-center relative">
         <button onClick={onClose} className="absolute right-3 top-2 text-pink-500 text-xl font-bold">✖</button>
         <h1 className="text-2xl font-bold mb-2 text-pink-500">Prover Match Blast</h1>
         <div className="flex justify-between px-4 text-sm font-bold mb-2">
@@ -193,7 +198,7 @@ export default function ProverMatchBlast({ onClose }) {
           onTouchStart={handleClickOrTouch}
           className="rounded bg-pink-100 mx-auto border border-pink-400"
         />
-        <div className="flex gap-2 justify-center mt-4">
+        <div className="flex gap-2 justify-center mt-4 flex-wrap">
           <button onClick={shareToX} className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600">🔗 Share ke X</button>
           <button onClick={handleRestart} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">🔁 Ulangi</button>
         </div>
