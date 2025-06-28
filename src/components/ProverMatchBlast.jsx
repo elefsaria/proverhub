@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
 const tileSize = 64;
-const cols = 8;
-const levelConfigs = {
-  1: { rows: 6, duration: 150 },
-  2: { rows: 8, duration: 150 },
-};
-
 const types = ["avatar1", "avatar2", "avatar3", "avatar4", "avatar5"];
+const levelConfig = {
+  1: { rows: 6, cols: 8, duration: 150 },
+  2: { rows: 8, cols: 8, duration: 150 },
+};
 
 const images = {};
 types.forEach((type) => {
@@ -20,7 +18,7 @@ function getRandomType() {
   return types[Math.floor(Math.random() * types.length)];
 }
 
-function createBoard(rows) {
+function createBoard(rows, cols) {
   const board = [];
   for (let y = 0; y < rows; y++) {
     const row = [];
@@ -35,30 +33,42 @@ function createBoard(rows) {
 function ProverMatchBlast({ onClose }) {
   const canvasRef = useRef();
   const [level, setLevel] = useState(1);
-  const [rows, setRows] = useState(levelConfigs[1].rows);
-  const [board, setBoard] = useState(() => createBoard(levelConfigs[1].rows));
-  const [selected, setSelected] = useState(null);
+  const [scoreLevel1, setScoreLevel1] = useState(0);
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(levelConfigs[1].duration);
+  const [board, setBoard] = useState(() =>
+    createBoard(levelConfig[1].rows, levelConfig[1].cols)
+  );
+  const [selected, setSelected] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(levelConfig[1].duration);
+  const [gameState, setGameState] = useState("playing"); // playing, level1End, gameOver
 
-  useEffect(() => drawBoard(), [board, selected]);
+  const rows = levelConfig[level].rows;
+  const cols = levelConfig[level].cols;
 
   useEffect(() => {
-    if (gameOver) return;
+    drawBoard();
+  }, [board, selected]);
+
+  useEffect(() => {
+    if (gameState !== "playing") return;
     const timer = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
           clearInterval(timer);
-          setGameOver(true);
+          if (level === 1) {
+            setScoreLevel1(score);
+            setGameState("level1End");
+          } else {
+            setGameState("gameOver");
+          }
           return 0;
         }
         return t - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [level, gameOver]);
+  }, [level, gameState]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -68,11 +78,12 @@ function ProverMatchBlast({ onClose }) {
       canvas.removeEventListener("mousedown", handleClickOrTouch);
       canvas.removeEventListener("touchstart", handleClickOrTouch);
     };
-  }, [selected, isProcessing, gameOver, board]);
+  });
 
   function drawBoard() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#1a1a1a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -81,9 +92,15 @@ function ProverMatchBlast({ onClose }) {
       for (let x = 0; x < cols; x++) {
         const type = board[y][x];
         if (type && images[type]) {
-          ctx.drawImage(images[type], x * tileSize, y * tileSize, tileSize, tileSize);
+          ctx.drawImage(
+            images[type],
+            x * tileSize,
+            y * tileSize,
+            tileSize,
+            tileSize
+          );
         }
-        ctx.strokeStyle = "#fff2";
+        ctx.strokeStyle = "rgba(255,255,255,0.2)";
         ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
       }
     }
@@ -91,15 +108,22 @@ function ProverMatchBlast({ onClose }) {
     if (selected) {
       ctx.strokeStyle = "magenta";
       ctx.lineWidth = 3;
-      ctx.strokeRect(selected.x * tileSize, selected.y * tileSize, tileSize, tileSize);
+      ctx.strokeRect(
+        selected.x * tileSize,
+        selected.y * tileSize,
+        tileSize,
+        tileSize
+      );
     }
   }
 
   function getTileAtPosition(x, y) {
     const rect = canvasRef.current.getBoundingClientRect();
+    const localX = x - rect.left;
+    const localY = y - rect.top;
     return {
-      x: Math.floor((x - rect.left) / tileSize),
-      y: Math.floor((y - rect.top) / tileSize),
+      x: Math.floor(localX / tileSize),
+      y: Math.floor(localY / tileSize),
     };
   }
 
@@ -113,12 +137,12 @@ function ProverMatchBlast({ onClose }) {
     return b.map((row) => [...row]);
   }
 
-  function swapTiles(pos1, pos2, customBoard = null) {
-    const tempBoard = customBoard ? cloneBoard(customBoard) : cloneBoard(board);
-    const temp = tempBoard[pos1.y][pos1.x];
-    tempBoard[pos1.y][pos1.x] = tempBoard[pos2.y][pos2.x];
-    tempBoard[pos2.y][pos2.x] = temp;
-    return tempBoard;
+  function swapTiles(pos1, pos2) {
+    const newBoard = cloneBoard(board);
+    const temp = newBoard[pos1.y][pos1.x];
+    newBoard[pos1.y][pos1.x] = newBoard[pos2.y][pos2.x];
+    newBoard[pos2.y][pos2.x] = temp;
+    return newBoard;
   }
 
   function findMatches(b) {
@@ -148,6 +172,7 @@ function ProverMatchBlast({ onClose }) {
       }
       if (match.length >= 3) match.forEach((m) => matches.push({ x, y: m }));
     }
+
     return matches;
   }
 
@@ -164,31 +189,22 @@ function ProverMatchBlast({ onClose }) {
     });
 
     for (let x = 0; x < cols; x++) {
-      let col = newBoard.map((row) => row[x]).filter((cell) => cell !== null);
-      while (col.length < rows) col.unshift(getRandomType());
-      for (let y = 0; y < rows; y++) newBoard[y][x] = col[y];
+      const col = newBoard.map((row) => row[x]).filter(Boolean);
+      while (col.length < rows) {
+        col.unshift(getRandomType());
+      }
+      for (let y = 0; y < rows; y++) {
+        newBoard[y][x] = col[y];
+      }
     }
 
-    const gained = matches.length * 10;
-    const newScore = score + gained;
-    setScore(newScore);
-
-    if (newScore >= 100 && level === 1) {
-      const newLevel = 2;
-      setLevel(newLevel);
-      setRows(levelConfigs[newLevel].rows);
-      setTimeLeft(levelConfigs[newLevel].duration);
-      setBoard(createBoard(levelConfigs[newLevel].rows));
-      setSelected(null);
-      return;
-    }
-
+    setScore((s) => s + matches.length * 10);
     setBoard(newBoard);
     setTimeout(() => removeMatchesAndDrop(newBoard), 300);
   }
 
   function handleClickOrTouch(e) {
-    if (isProcessing || gameOver) return;
+    if (isProcessing || gameState !== "playing") return;
     const isTouch = e.type.startsWith("touch");
     const pos = isTouch
       ? getTileAtPosition(e.touches[0].clientX, e.touches[0].clientY)
@@ -205,7 +221,6 @@ function ProverMatchBlast({ onClose }) {
       if (isValidSwap(selected, pos)) {
         const swapped = swapTiles(selected, pos);
         const matches = findMatches(swapped);
-
         if (matches.length > 0) {
           setBoard(swapped);
           setSelected(null);
@@ -237,7 +252,7 @@ function ProverMatchBlast({ onClose }) {
         </button>
       </div>
 
-      {!gameOver ? (
+      {gameState === "playing" && (
         <>
           <h2 className="text-2xl text-pink-400 font-bold mb-2">Prover Match Blast</h2>
           <p className="text-pink-400 mb-2">
@@ -250,14 +265,45 @@ function ProverMatchBlast({ onClose }) {
             className="border-2 border-pink-500 rounded"
           />
         </>
-      ) : (
+      )}
+
+      {gameState === "level1End" && (
         <div className="text-center text-white">
-          <h2 className="text-2xl font-bold text-pink-400 mb-4">Game Over</h2>
-          <p className="mb-2">Score Akhir: {score}</p>
-          <p className="mb-4">Level Terakhir: {level}</p>
+          <h2 className="text-2xl font-bold text-pink-400 mb-4">Level 1 Selesai</h2>
+          <p className="mb-4">Score Level 1: {score}</p>
           <button
             onClick={() => {
-              const url = `https://x.com/intent/tweet?text=Saya berhasil mendapatkan skor ${score} di level ${level} di game Prover Match Blast! Coba mainkan juga di https://proverhub.vercel.app`;
+              setLevel(2);
+              setTimeLeft(levelConfig[2].duration);
+              setScore(score); // tetap lanjutkan score
+              setBoard(createBoard(levelConfig[2].rows, levelConfig[2].cols));
+              setGameState("playing");
+            }}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded mb-2"
+          >
+            ▶️ Lanjut Ronde 2
+          </button>
+          <button
+            onClick={() => {
+              const url = `https://x.com/intent/tweet?text=Saya mendapatkan skor ${score} di Prover Match Blast! Coba mainkan juga di https://proverhub.vercel.app`;
+              window.open(url, "_blank");
+            }}
+            className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded"
+          >
+            🚀 Share ke X
+          </button>
+        </div>
+      )}
+
+      {gameState === "gameOver" && (
+        <div className="text-center text-white">
+          <h2 className="text-2xl font-bold text-pink-400 mb-4">Permainan Selesai</h2>
+          <p className="mb-2">Score Level 1: {scoreLevel1}</p>
+          <p className="mb-4">Score Level 2: {score - scoreLevel1}</p>
+          <p className="mb-4 font-bold text-pink-300">Total: {score}</p>
+          <button
+            onClick={() => {
+              const url = `https://x.com/intent/tweet?text=Saya menyelesaikan Prover Match Blast dengan total skor ${score} (Level 1: ${scoreLevel1}, Level 2: ${score - scoreLevel1})! Coba juga di https://proverhub.vercel.app`;
               window.open(url, "_blank");
             }}
             className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded"
