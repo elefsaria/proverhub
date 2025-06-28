@@ -9,7 +9,7 @@ const images = [
   "/assets/match-blast/avatar4.png",
   "/assets/match-blast/avatar5.png",
 ];
-const levelTimes = [120, 90, 60]; // seconds for levels 1, 2, 3
+const levelTimes = [120, 90, 60]; // seconds for levels 1–3
 
 export default function ProverMatchBlast({ onClose }) {
   const canvasRef = useRef(null);
@@ -64,10 +64,10 @@ export default function ProverMatchBlast({ onClose }) {
         const img = new Image();
         img.src = images[val];
         img.onload = () => {
-          ctx.fillStyle = "#333";
+          ctx.fillStyle = "#222";
           ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
           ctx.drawImage(img, x * tileSize, y * tileSize, tileSize, tileSize);
-          ctx.strokeStyle = "#fff";
+          ctx.strokeStyle = "#555";
           ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
         };
       });
@@ -200,11 +200,11 @@ export default function ProverMatchBlast({ onClose }) {
 
   return (
     <div className="absolute inset-0 bg-black/90 z-50 flex justify-center items-center">
-      <div className="bg-white p-4 rounded-lg text-center">
+      <div className="bg-white p-4 rounded-lg text-center relative">
         <h1 className="text-2xl font-bold text-pink-500 mb-2">
           Prover Match Blast
         </h1>
-        <div className="mb-2 text-sm">
+        <div className="mb-2 text-sm text-pink-500 font-semibold">
           Score: {score} | Level: {level} | Time: {formatTime(timeLeft)}
         </div>
         <canvas
